@@ -63,8 +63,7 @@ uint8_t buffer_Rx_aaa[BUFFER_SIZE];
 uint8_t size_rx_MCU;
 volatile bool g_lora_data_received = false;
 volatile bool flag_mcu_send_node = false;
-uint8_t myRxBuffer[50];
-volatile bool data_received_flag = false;
+
 /* USER CODE END 0 */
 
 /**
@@ -82,9 +81,11 @@ int main(void)
   /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
   MX_USART1_UART_Init();
-  HAL_UART_Receive_IT(&huart1, myRxBuffer, 20);
-  //HAL_UARTEx_ReceiveToIdle_DMA(&huart1, buffer_Rx_MCU, BUFFER_SIZE);
 
+  if (HAL_UARTEx_ReceiveToIdle_DMA(&huart1, buffer_Rx_MCU, BUFFER_SIZE) != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN Init */
 
   /* USER CODE END Init */
@@ -107,11 +108,6 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  if (data_received_flag == true)
-	      {
-	          data_received_flag = false;
-	          HAL_UART_Receive_IT(&huart1, myRxBuffer, 20);
-	      }
     //MX_SubGHz_Phy_Process();
 	  /*
 	  if(flag_mcu_send_node){
@@ -123,7 +119,7 @@ int main(void)
 		  HAL_UART_Transmit(&huart1, BufferRx, RxBufferSize, 300);
 
 	  }
-	  */
+	  /*
     /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
@@ -186,15 +182,6 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
     }
 
 
-}
-
-void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
-{
-  if (huart->Instance == USART1)
-  {
-    // "Giương cờ" để báo cho vòng lặp while(1) biết
-    data_received_flag = true;
-  }
 }
 /* USER CODE END 4 */
 
